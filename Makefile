@@ -10,7 +10,7 @@ CXXFLAGS = -O2
 LD = $(CXX)
 
 # linker flags
-LDFLAGS = -lSDL2
+LDFLAGS = -lSDL2 -lGL
 
 # name of executable
 EXE = chip8

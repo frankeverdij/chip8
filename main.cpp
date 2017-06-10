@@ -1,15 +1,8 @@
 #include "chip8.h"
-#include <SDL2/SDL.h>
 
-int main()
+int main(int argc, char* argv[])
 {
-    chip8 mychip8;
+    chip8 myChip8;
 
-//    SDL_init;
-    while (true)
-    {
-        
-    }
-
-    return 0;
+    return myChip8.loop();
 }
