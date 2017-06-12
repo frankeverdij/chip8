@@ -1,7 +1,7 @@
 #ifndef CHIP8_H
 #define CHIP8_H
 
-#include <queue>
+#include <stack>
 #include <SDL2/SDL.h>
 #include <GL/gl.h>
 #include <GL/glu.h>
@@ -20,7 +20,7 @@ class chip8
         unsigned char v_[16];
         unsigned short i_;
         unsigned short pc_;
-        std::queue<unsigned short> stack_;
+        std::stack<unsigned short> stack_;
         unsigned char delay_;
         unsigned char sound_;
         unsigned char memory_[4096];
@@ -37,6 +37,8 @@ class chip8
         bool initRender(const short, const short);
         void draw();
         void cleanupRender();
+        unsigned short fetch();
+        void decode_and_execute(const unsigned short&);
         int loop();
 };
 

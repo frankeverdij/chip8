@@ -39,6 +39,23 @@ bool chip8::initRender(const short width, const short height)
     
 }
 
+unsigned short chip8::fetch()
+{
+    return memory_[pc_] << 8 || memory_[pc_ + 1];
+}
+
+void chip8::decode_and_execute(const unsigned short& opcode)
+{
+    unsigned char msb = (opcode >> 8) & 0xf0;
+    switch (msb)
+    {
+        case 0x00 :
+            break;
+        default :
+            break;
+    }
+}
+
 void chip8::cleanupRender()
 {
     SDL_DestroyWindow(window);
@@ -54,7 +71,8 @@ int chip8::loop()
 
     while (running)
     {
-        
+        unsigned short opcode = fetch();
+        decode_and_execute(opcode);
     }
 
     cleanupRender();
