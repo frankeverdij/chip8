@@ -26,19 +26,24 @@ class chip8
         unsigned char memory_[4096];
         unsigned char gfx_[64 * 32];
 
-        inline unsigned short get_opcode_address(unsigned short);
-        inline unsigned char get_opcode_X(unsigned short);
-        inline unsigned char get_opcode_Y(unsigned short);
-        inline unsigned char get_opcode_val(unsigned short);
+        inline unsigned short get_opcode_address(const unsigned short&);
+        inline unsigned char get_opcode_X(const unsigned short&);
+        inline unsigned char get_opcode_Y(const unsigned short&);
+        inline unsigned char get_opcode_val(const unsigned short&);
 
     public :
         chip8();
         bool loadRom(const string&);
         bool initRender(const short, const short);
         void draw();
+        void clearDisplay();
         void cleanupRender();
         unsigned short fetch();
         void decode_and_execute(const unsigned short&);
+        void handle_0(const unsigned short&);
+        void handle_8(const unsigned short&);
+        void handle_e(const unsigned short&);
+        void handle_f(const unsigned short&);
         int loop();
 };
 

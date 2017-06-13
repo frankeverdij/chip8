@@ -22,7 +22,7 @@ OBJECTS = $(SOURCES:.cpp=.o)
 # Makefile
 all: $(OBJECTS)
 	$(LD) -o $(EXE) $(OBJECTS) $(LDFLAGS)
-%.o: %.c
+%.o: %.cpp
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
 # Cleaning everything
