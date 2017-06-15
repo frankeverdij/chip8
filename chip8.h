@@ -13,9 +13,10 @@ using namespace std;
 class chip8
 {
     private :
-        SDL_Window* window;
-        SDL_Renderer* renderer;
-        bool running;
+        SDL_Window* window_;
+        SDL_Renderer* renderer_;
+        bool running_;
+        GLuint texhandle_;
 
         unsigned char v_[16];
         unsigned short i_;
@@ -35,10 +36,11 @@ class chip8
         chip8();
         bool loadRom(const string&);
         bool initRender(const short, const short);
-        void draw();
+        void draw(const short, const short);
         void clearDisplay();
         void cleanupRender();
         unsigned short fetch();
+        unsigned short keypress();
         void decode_and_execute(const unsigned short&);
         void handle_0(const unsigned short&);
         void handle_8(const unsigned short&);
