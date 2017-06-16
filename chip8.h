@@ -5,6 +5,7 @@
 #include <SDL2/SDL.h>
 #include <GL/gl.h>
 #include <GL/glu.h>
+#include <cstdlib>
 #include <iostream>
 #include <string>
 
@@ -33,6 +34,7 @@ class chip8
         inline unsigned char get_opcode_val(const unsigned short&);
 
     public :
+        static unsigned char fontset[80];
         chip8();
         bool loadRom(const string&);
         bool initRender(const short, const short);
@@ -42,10 +44,10 @@ class chip8
         unsigned short fetch();
         unsigned short keypress();
         void decode_and_execute(const unsigned short&);
-        void handle_0(const unsigned short&);
-        void handle_8(const unsigned short&);
-        void handle_e(const unsigned short&);
-        void handle_f(const unsigned short&);
+        inline void handle_0(const unsigned short&);
+        inline void handle_8(const unsigned short&);
+        inline void handle_e(const unsigned short&);
+        inline void handle_f(const unsigned short&);
         int loop();
 };
 

@@ -1,7 +1,30 @@
 #include "chip8.h"
 
-chip8::chip8(): window_(NULL),renderer_(NULL),running_(true)
-{}
+unsigned char chip8::fontset[80] =
+{
+    0xF0, 0x90, 0x90, 0x90, 0xF0, // 0
+    0x20, 0x60, 0x20, 0x20, 0x70, // 1
+    0xF0, 0x10, 0xF0, 0x80, 0xF0, // 2
+    0xF0, 0x10, 0xF0, 0x10, 0xF0, // 3
+    0x90, 0x90, 0xF0, 0x10, 0x10, // 4
+    0xF0, 0x80, 0xF0, 0x10, 0xF0, // 5
+    0xF0, 0x80, 0xF0, 0x90, 0xF0, // 6
+    0xF0, 0x10, 0x20, 0x40, 0x40, // 7
+    0xF0, 0x90, 0xF0, 0x90, 0xF0, // 8
+    0xF0, 0x90, 0xF0, 0x10, 0xF0, // 9
+    0xF0, 0x90, 0xF0, 0x90, 0x90, // A
+    0xE0, 0x90, 0xE0, 0x90, 0xE0, // B
+    0xF0, 0x80, 0x80, 0x80, 0xF0, // C
+    0xE0, 0x90, 0x90, 0x90, 0xE0, // D
+    0xF0, 0x80, 0xF0, 0x80, 0xF0, // E
+    0xF0, 0x80, 0xF0, 0x80, 0x80  // F
+};
+
+chip8::chip8(): window_(NULL),renderer_(NULL),running_(true), pc_(0x200), i_(0)
+{
+    for(int i = 0; i < 80; ++i)
+        memory_[i] = fontset[i];
+}
 
 unsigned short chip8::fetch()
 {
@@ -36,35 +59,48 @@ void chip8::handle_0(const unsigned short& opcode)
 void chip8::handle_8(const unsigned short& opcode)
 {
     unsigned char lsb = opcode & 0x0f;
+    unsigned char x = v_[get_opcode_X(opcode)];
+    unsigned char y = v_[get_opcode_Y(opcode)];
+    unsigned short add;
+
     switch (lsb)
     {
         case 0x00 :
-            v_[get_opcode_X(opcode)] = v_[get_opcode_Y(opcode)];
+            v_[get_opcode_X(opcode)] = y;
             break;
         case 0x01 :
-            v_[get_opcode_X(opcode)] |= v_[get_opcode_Y(opcode)];
+            v_[get_opcode_X(opcode)] |= y;
             break;
         case 0x02 :
-            v_[get_opcode_X(opcode)] &= v_[get_opcode_Y(opcode)];
+            v_[get_opcode_X(opcode)] &= y;
             break;
         case 0x03 :
-            v_[get_opcode_X(opcode)] ^= v_[get_opcode_Y(opcode)];
+            v_[get_opcode_X(opcode)] ^= y;
             break;
         case 0x04 :
-            
+            add = x;
+            add += y;
+            v_[get_opcode_X(opcode)] = add & 0xff;
+            v_[15] = (add < 255) ? 1 : 0;
             break;
         case 0x05 :
-            
+            add = x + 1;
+            add += (!y);
+            v_[get_opcode_X(opcode)] = add & 0xff;
+            v_[15] = (x < y) ? 0 : 1;
             break;
         case 0x06 :
-            v_[15] = (v_[get_opcode_X(opcode)] & 0x01);
+            v_[15] = (x & 0x01);
             v_[get_opcode_X(opcode)] >> 1;
             break;
         case 0x07 :
-            
+            add = y + 1;
+            add += (!x);
+            v_[get_opcode_X(opcode)] = add & 0xff;
+            v_[15] = (y < x) ? 0 : 1;
             break;
         case 0x0E :
-            v_[15] = (v_[get_opcode_X(opcode)] & 0x80) >> 7;
+            v_[15] = (x & 0x80) >> 7;
             v_[get_opcode_X(opcode)] << 1;            
             break;
         default : // illegal 8XY. call
@@ -75,6 +111,7 @@ void chip8::handle_8(const unsigned short& opcode)
 void chip8::handle_e(const unsigned short& opcode)
 {
     unsigned char lsb = opcode & 0xff;
+
     switch (lsb)
     {
         case 0x9E :
@@ -90,6 +127,58 @@ void chip8::handle_e(const unsigned short& opcode)
 
 void chip8::handle_f(const unsigned short& opcode)
 {
+    unsigned char lsb = opcode & 0xff;
+    unsigned char bcd, j;
+
+    switch (lsb)
+    {
+        case 0x07 :
+            v_[get_opcode_X(opcode)] = delay_;
+            break;
+        case 0x0a :
+            v_[get_opcode_X(opcode)] = keypress();
+            break;
+        case 0x15 :
+            delay_ = v_[get_opcode_X(opcode)];
+            break;
+        case 0x18 :
+            sound_ = v_[get_opcode_X(opcode)];
+            break;
+        case 0x1e :
+            i_ += v_[get_opcode_X(opcode)];
+            if (i_ > 0x0fff)  // undocumented feature
+            {
+                v_[15] = 1;
+            }
+            else
+            {
+                v_[15] = 0;
+            }
+            break;
+        case 0x29 :
+            i_ = 5 * v_[get_opcode_X(opcode)];
+            break;
+        case 0x33 :
+            bcd = v_[get_opcode_X(opcode)];
+            memory_[i_ + 0] = bcd / 100;
+            memory_[i_ + 1] = (bcd % 100) / 10;
+            memory_[i_ + 2] = (bcd % 10);
+            break;
+        case 0x55 :
+            for (j = 0; j < get_opcode_X(opcode) ; j++)
+            {
+                memory_[i_ + j] = v_[j];
+            }
+            break;
+        case 0x65 :
+            for (j = 0; j < get_opcode_X(opcode) ; j++)
+            {
+                v_[j] = memory_[i_ + j];
+            }
+            break;
+        default : // illegal 9X.. call
+            break;
+    }
 }
 
 unsigned short chip8::get_opcode_address(const unsigned short& opcode)
@@ -155,7 +244,7 @@ void chip8::decode_and_execute(const unsigned short& opcode)
             pc_ = v_[0] + get_opcode_address(opcode);
             break;
         case 0x0c :
-            v_[get_opcode_X(opcode)] = get_opcode_val(opcode);
+            v_[get_opcode_X(opcode)] = (rand() % 256) & get_opcode_val(opcode);
             break;
         case 0x0d :
             // sprite
