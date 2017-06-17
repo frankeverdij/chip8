@@ -46,6 +46,7 @@ class chip8
         void decode_and_execute(const unsigned short&);
         inline void handle_0(const unsigned short&);
         inline void handle_8(const unsigned short&);
+        inline void handle_d(const unsigned short&);
         inline void handle_e(const unsigned short&);
         inline void handle_f(const unsigned short&);
         int loop();

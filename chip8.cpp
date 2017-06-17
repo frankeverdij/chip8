@@ -108,6 +108,21 @@ void chip8::handle_8(const unsigned short& opcode)
     }
 }
 
+void chip8::handle_d(const unsigned short& opcode)
+{
+    unsigned char x = v_[get_opcode_X(opcode)];
+    unsigned char y = v_[get_opcode_Y(opcode)];
+    unsigned char n = opcode & 0x0f;
+    unsigned char bits = 8;
+    unsigned char j;
+
+    if ((x > 63) || (y > 31))
+    {
+        v_[15] = 0;
+        return;
+    }
+}
+
 void chip8::handle_e(const unsigned short& opcode)
 {
     unsigned char lsb = opcode & 0xff;
@@ -120,7 +135,7 @@ void chip8::handle_e(const unsigned short& opcode)
         case 0xA1 :
             pc_ += (v_[get_opcode_X(opcode)] != keypress()) ? 2 : 0;
             break;
-        default : // illegal 9X.. call
+        default : // illegal eX.. call
             break;
     }
 }
@@ -176,7 +191,7 @@ void chip8::handle_f(const unsigned short& opcode)
                 v_[j] = memory_[i_ + j];
             }
             break;
-        default : // illegal 9X.. call
+        default : // illegal fX.. call
             break;
     }
 }
@@ -247,7 +262,7 @@ void chip8::decode_and_execute(const unsigned short& opcode)
             v_[get_opcode_X(opcode)] = (rand() % 256) & get_opcode_val(opcode);
             break;
         case 0x0d :
-            // sprite
+            handle_d(opcode);
             break;
         case 0x0e :
             handle_e(opcode);
