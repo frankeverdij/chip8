@@ -7,6 +7,7 @@
 #include <GL/glu.h>
 #include <cstdlib>
 #include <iostream>
+#include <iomanip>
 #include <string>
 
 using namespace std;
@@ -16,7 +17,10 @@ class chip8
     private :
         SDL_Window* window_;
         SDL_Renderer* renderer_;
+        unsigned short width_;
+        unsigned short height_;
         bool running_;
+        bool draw_;
         GLuint texhandle_;
 
         unsigned char v_[16];
@@ -37,8 +41,8 @@ class chip8
         static unsigned char fontset[80];
         chip8();
         bool loadRom(const string&);
-        bool initRender(const short, const short);
-        void draw(const short, const short);
+        bool initRender();
+        void draw();
         void clearDisplay();
         void cleanupRender();
         unsigned short fetch();
@@ -49,6 +53,7 @@ class chip8
         inline void handle_d(const unsigned short&);
         inline void handle_e(const unsigned short&);
         inline void handle_f(const unsigned short&);
+        void print_illegal(unsigned char, const unsigned short&);
         int loop();
 };
 

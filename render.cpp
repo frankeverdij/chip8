@@ -1,13 +1,13 @@
 #include "chip8.h"
 
-bool chip8::initRender(const short width, const short height)
+bool chip8::initRender()
 {
     if(SDL_Init(SDL_INIT_EVERYTHING) < 0) {
         std::cout << "Can't init" << std::endl;
         return false;
     }
 
-    if ((window_ = SDL_CreateWindow("CHIP8", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, width, height ,SDL_WINDOW_OPENGL)) == NULL) {
+    if ((window_ = SDL_CreateWindow("CHIP8", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, width_, height_ ,SDL_WINDOW_OPENGL)) == NULL) {
         std::cout << "Can't create window" << SDL_GetError() << std::endl;
         return false;
     }
@@ -19,12 +19,12 @@ bool chip8::initRender(const short width, const short height)
 
     glClearColor(0.0f, 0.0f, 0.0f, 0);
 
-    glViewport(0, 0, width, height);
+    glViewport(0, 0, width_, height_);
 
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
 
-    glOrtho(0, width, 0, height, -1, 1);
+    glOrtho(0, width_, 0, height_, -1, 1);
 
     glMatrixMode(GL_MODELVIEW);
 
@@ -34,7 +34,7 @@ bool chip8::initRender(const short width, const short height)
     
 }
 
-void chip8::draw(const short width, const short height)
+void chip8::draw()
 {
     glClear(GL_COLOR_BUFFER_BIT);
     glGenTextures(1, &texhandle_);
@@ -47,20 +47,22 @@ void chip8::draw(const short width, const short height)
 
     glBegin(GL_QUADS);
     glTexCoord2i(0, 0); glVertex2i(0, 0);
-    glTexCoord2i(0, 1); glVertex2i(0, height);
-    glTexCoord2i(1, 1); glVertex2i(width, height);
-    glTexCoord2i(1, 0); glVertex2i(width, 0);
+    glTexCoord2i(0, 1); glVertex2i(0, height_);
+    glTexCoord2i(1, 1); glVertex2i(width_, height_);
+    glTexCoord2i(1, 0); glVertex2i(width_, 0);
     glEnd();
     glDisable(GL_TEXTURE_2D);
 
     glBindTexture(GL_TEXTURE_2D, 0);
 
     SDL_GL_SwapWindow(window_);
+    draw_ = false;
 }
 
 void chip8::clearDisplay()
 {
     std::fill_n(gfx_, 64 * 32, 0);
+    draw_ = true;
 }
 
 void chip8::cleanupRender()

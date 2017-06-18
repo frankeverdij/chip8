@@ -20,7 +20,13 @@ unsigned char chip8::fontset[80] =
     0xF0, 0x80, 0xF0, 0x80, 0x80  // F
 };
 
-chip8::chip8(): window_(NULL),renderer_(NULL),running_(true), pc_(0x200), i_(0)
+chip8::chip8() : window_(NULL),
+                 renderer_(NULL),
+                 width_(640),
+                 height_(320),
+                 running_(true),
+                 pc_(0x200),
+                 i_(0)
 {
     for(int i = 0; i < 80; ++i)
         memory_[i] = fontset[i];
@@ -50,10 +56,16 @@ void chip8::handle_0(const unsigned short& opcode)
             pc_ = stack_.top();
             stack_.pop();
             break;
-        default : // RCA 1802 call
-            stack_.push(pc_);
-            pc_ = get_opcode_address(opcode);
+        default : // RCA 1802 call, but that's illegal
+            print_illegal(0x0, opcode);
+            exit(0);
+            break;
     }
+}
+
+void chip8::print_illegal(unsigned char handle, const unsigned short& opcode)
+{
+    cout << "Illegal " << showbase << internal << setfill('0') << hex << setw(2) << handle << " opcode " << setw(4) << opcode << " , quitting..." << endl;
 }
 
 void chip8::handle_8(const unsigned short& opcode)
@@ -81,7 +93,7 @@ void chip8::handle_8(const unsigned short& opcode)
             add = x;
             add += y;
             v_[get_opcode_X(opcode)] = add & 0xff;
-            v_[15] = (add < 255) ? 1 : 0;
+            v_[15] = (add > 255) ? 1 : 0;
             break;
         case 0x05 :
             add = x + 1;
@@ -104,6 +116,8 @@ void chip8::handle_8(const unsigned short& opcode)
             v_[get_opcode_X(opcode)] << 1;            
             break;
         default : // illegal 8XY. call
+            print_illegal(0x08, opcode);
+            exit(0);
             break;
     }
 }
@@ -113,14 +127,35 @@ void chip8::handle_d(const unsigned short& opcode)
     unsigned char x = v_[get_opcode_X(opcode)];
     unsigned char y = v_[get_opcode_Y(opcode)];
     unsigned char n = opcode & 0x0f;
-    unsigned char bits = 8;
-    unsigned char j;
+    unsigned char bits, lines, mask, pixel;
+    unsigned char j, k;
+
+    v_[15] = 0;
 
     if ((x > 63) || (y > 31))
     {
-        v_[15] = 0;
         return;
     }
+
+    bits = (x + 8 <= 64) ? 8 : 64 - x;
+    lines = (y + n <= 32) ? n : 32 - y;
+
+    for (j = 0; j < lines; j++)
+    {
+        mask = 0x80;
+        for (k = 0; k < bits; k++)
+        {
+            if (memory_[i_ + j] & mask)
+            {
+                pixel = gfx_[64 * y + x];
+                v_[15] |= pixel;
+                gfx_[64 * y + x] = !pixel;
+            }
+            mask >> 1;
+        }
+    }
+    v_[15] &= 0x01;
+    draw_ = true;
 }
 
 void chip8::handle_e(const unsigned short& opcode)
@@ -136,6 +171,8 @@ void chip8::handle_e(const unsigned short& opcode)
             pc_ += (v_[get_opcode_X(opcode)] != keypress()) ? 2 : 0;
             break;
         default : // illegal eX.. call
+            print_illegal(0x0e, opcode);
+            exit(0);
             break;
     }
 }
@@ -192,6 +229,8 @@ void chip8::handle_f(const unsigned short& opcode)
             }
             break;
         default : // illegal fX.. call
+            print_illegal(0x0f, opcode);
+            exit(0);
             break;
     }
 }
@@ -271,13 +310,15 @@ void chip8::decode_and_execute(const unsigned short& opcode)
             handle_f(opcode);
             break;
         default :
+            print_illegal(0xff, opcode);
+            exit(0);
             break;
     }
 }
 
 int chip8::loop()
 {
-    if (initRender(640,320) == false) {
+    if (initRender() == false) {
         std::cout << "Render init failed" << std::endl;
         return -1;
     }
@@ -286,6 +327,10 @@ int chip8::loop()
     {
         unsigned short opcode = fetch();
         decode_and_execute(opcode);
+        if (draw_)
+        {
+            draw();
+        }
     }
 
     cleanupRender();
