@@ -59,12 +59,6 @@ void chip8::draw()
     draw_ = false;
 }
 
-void chip8::clearDisplay()
-{
-    std::fill_n(gfx_, 64 * 32, 0);
-    draw_ = true;
-}
-
 void chip8::cleanupRender()
 {
     SDL_DestroyWindow(window_);

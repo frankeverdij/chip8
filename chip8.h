@@ -2,13 +2,13 @@
 #define CHIP8_H
 
 #include <stack>
-#include <SDL2/SDL.h>
-#include <GL/gl.h>
-#include <GL/glu.h>
 #include <cstdlib>
 #include <iostream>
 #include <iomanip>
 #include <string>
+#include <SDL2/SDL.h>
+#include <GL/gl.h>
+#include <GL/glu.h>
 
 using namespace std;
 

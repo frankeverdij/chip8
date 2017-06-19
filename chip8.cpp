@@ -39,6 +39,12 @@ unsigned short chip8::fetch()
     return opcode;
 }
 
+void chip8::clearDisplay()
+{
+    std::fill_n(gfx_, 64 * 32, 0);
+    draw_ = true;
+}
+
 unsigned short chip8::keypress()
 {
     return 0;
