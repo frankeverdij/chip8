@@ -31,6 +31,7 @@ class chip8
         unsigned char sound_;
         unsigned char memory_[4096];
         unsigned char gfx_[64 * 32];
+        unsigned char keys_[16];
 
         inline unsigned short get_opcode_address(const unsigned short&);
         inline unsigned char get_opcode_X(const unsigned short&);
@@ -45,8 +46,10 @@ class chip8
         void draw();
         void clearDisplay();
         void cleanupRender();
+        void handleEvent(SDL_Event *);
+        unsigned char key_pressed(SDL_KeyboardEvent *);
         unsigned short fetch();
-        unsigned short keypress();
+        unsigned char waitForKeyPress();
         void decode_and_execute(const unsigned short&);
         inline void handle_0(const unsigned short&);
         inline void handle_8(const unsigned short&);

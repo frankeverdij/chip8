@@ -45,12 +45,6 @@ void chip8::clearDisplay()
     draw_ = true;
 }
 
-unsigned short chip8::keypress()
-{
-    return 0;
-}
-
-
 void chip8::handle_0(const unsigned short& opcode)
 {
     switch (opcode)
@@ -171,10 +165,10 @@ void chip8::handle_e(const unsigned short& opcode)
     switch (lsb)
     {
         case 0x9E :
-            pc_ += (v_[get_opcode_X(opcode)] == keypress()) ? 2 : 0;
+            pc_ += (keys_[v_[get_opcode_X(opcode)]]) ? 2 : 0;
             break;
         case 0xA1 :
-            pc_ += (v_[get_opcode_X(opcode)] != keypress()) ? 2 : 0;
+            pc_ += !(keys_[v_[get_opcode_X(opcode)]]) ? 2 : 0;
             break;
         default : // illegal eX.. call
             print_illegal(0x0e, opcode);
@@ -194,7 +188,7 @@ void chip8::handle_f(const unsigned short& opcode)
             v_[get_opcode_X(opcode)] = delay_;
             break;
         case 0x0a :
-            v_[get_opcode_X(opcode)] = keypress();
+            v_[get_opcode_X(opcode)] = waitForKeyPress();
             break;
         case 0x15 :
             delay_ = v_[get_opcode_X(opcode)];
@@ -329,6 +323,8 @@ int chip8::loop()
         return -1;
     }
 
+    SDL_Event Event;
+    
     while (running_)
     {
         unsigned short opcode = fetch();
@@ -336,6 +332,9 @@ int chip8::loop()
         if (draw_)
         {
             draw();
+        }
+        while(SDL_PollEvent(&Event)) {
+            handleEvent(&Event);
         }
     }
 
