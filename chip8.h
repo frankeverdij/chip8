@@ -2,8 +2,11 @@
 #define CHIP8_H
 
 #include <stack>
+#include <vector>
 #include <cstdlib>
 #include <iostream>
+#include <fstream>
+#include <iterator>
 #include <iomanip>
 #include <string>
 #include <SDL2/SDL.h>
@@ -26,10 +29,10 @@ class chip8
         unsigned char v_[16];
         unsigned short i_;
         unsigned short pc_;
-        std::stack<unsigned short> stack_;
+        stack<unsigned short> stack_;
         unsigned char delay_;
         unsigned char sound_;
-        unsigned char memory_[4096];
+        vector<unsigned char> memory_;
         unsigned char gfx_[64 * 32];
         unsigned char keys_[16];
 
@@ -41,11 +44,12 @@ class chip8
     public :
         static unsigned char fontset[80];
         chip8();
-        bool loadRom(const string&);
+        bool loadRom(const char *);
         bool initRender();
         void draw();
         void clearDisplay();
         void cleanupRender();
+        void handleCounters();
         void handleEvent(SDL_Event *);
         unsigned char key_pressed(SDL_KeyboardEvent *);
         unsigned short fetch();

@@ -25,16 +25,23 @@ chip8::chip8() : window_(NULL),
                  width_(640),
                  height_(320),
                  running_(true),
+                 memory_(4096),
                  pc_(0x200),
                  i_(0)
 {
-    for(int i = 0; i < 80; ++i)
+    for (int i = 0; i < 80; ++i)
         memory_[i] = fontset[i];
+
+    for (int i = 0; i < 16; ++i)
+        keys_[i] = false;
 }
 
 unsigned short chip8::fetch()
 {
-    unsigned short opcode = memory_[pc_] << 8 || memory_[pc_ + 1];
+    unsigned short opcode = memory_[pc_] << 8 | memory_[pc_+1];
+
+    cout << "memory " << showbase << internal << hex << setw(2) << (int) memory_[pc_] << " : " << (int) memory_[pc_ + 1] << endl;
+    cout << "opcode " << opcode << " pc " << pc_ << endl;
     pc_ += 2;
     return opcode;
 }
@@ -65,7 +72,7 @@ void chip8::handle_0(const unsigned short& opcode)
 
 void chip8::print_illegal(unsigned char handle, const unsigned short& opcode)
 {
-    cout << "Illegal " << showbase << internal << setfill('0') << hex << setw(2) << handle << " opcode " << setw(4) << opcode << " , quitting..." << endl;
+    cout << "Illegal " << showbase << internal << setfill('0') << hex << setw(2) << (int) handle << " opcode " << setw(4) << opcode << " , quitting..." << endl;
 }
 
 void chip8::handle_8(const unsigned short& opcode)
@@ -257,56 +264,56 @@ unsigned char chip8::get_opcode_val(const unsigned short& opcode)
 
 void chip8::decode_and_execute(const unsigned short& opcode)
 {
-    unsigned char msb = (opcode >> 8) & 0xf0;
+    unsigned char msb = (opcode >> 12) & 0x0f;
     switch (msb)
     {
-        case 0x00 :
+        case 0x0 :
             handle_0(opcode);
             break;
-        case 0x01 :
+        case 0x1 :
             pc_ = get_opcode_address(opcode);
             break;
-        case 0x02 :
+        case 0x2 :
             stack_.push(pc_);
             pc_ = get_opcode_address(opcode);
             break;
-        case 0x03 :
+        case 0x3 :
             pc_ += (v_[get_opcode_X(opcode)] == get_opcode_val(opcode)) ? 2 : 0;
             break;
-        case 0x04 :
+        case 0x4 :
             pc_ += (v_[get_opcode_X(opcode)] != get_opcode_val(opcode)) ? 2 : 0;
             break;
-        case 0x05 :
+        case 0x5 :
             pc_ += (v_[get_opcode_X(opcode)] == v_[get_opcode_Y(opcode)]) ? 2 : 0;
             break;
-        case 0x06 :
+        case 0x6 :
             v_[get_opcode_X(opcode)] = get_opcode_val(opcode);
             break;
-        case 0x07 :
+        case 0x7 :
             v_[get_opcode_X(opcode)] += get_opcode_val(opcode);
             break;
-        case 0x08 :
+        case 0x8 :
             handle_8(opcode);
             break;
-        case 0x09 :
+        case 0x9 :
             pc_ += (v_[get_opcode_X(opcode)] != v_[get_opcode_Y(opcode)]) ? 2 : 0;
             break;
-        case 0x0a :
+        case 0xa :
             i_ = get_opcode_address(opcode);
             break;
-        case 0x0b :
+        case 0xb :
             pc_ = v_[0] + get_opcode_address(opcode);
             break;
-        case 0x0c :
+        case 0xc :
             v_[get_opcode_X(opcode)] = (rand() % 256) & get_opcode_val(opcode);
             break;
-        case 0x0d :
+        case 0xd :
             handle_d(opcode);
             break;
-        case 0x0e :
+        case 0xe :
             handle_e(opcode);
             break;
-        case 0x0f :
+        case 0xf :
             handle_f(opcode);
             break;
         default :
@@ -316,10 +323,50 @@ void chip8::decode_and_execute(const unsigned short& opcode)
     }
 }
 
+void chip8::handleCounters()
+{
+    if (sound_ != 0)
+    {
+        cout << '\a' << flush;
+    }
+    else
+    {
+        sound_--;
+    }
+    
+    if (delay_ != 0)
+    {
+        delay_--;
+    }
+}
+
+bool chip8::loadRom(const char *filename)
+{
+    streampos fileSize;
+
+    ifstream file(filename, ios::binary);
+    file.unsetf(ios::skipws);
+
+    file.seekg(0, ios::end);
+    fileSize = file.tellg();
+    file.seekg(0, ios::beg);
+
+    if (fileSize > 4096 - 0x200)
+    {
+        cout << "Rom too large" << endl;
+        return false;
+    }
+
+    memory_.insert(memory_.begin() + 0x200,
+               std::istream_iterator<unsigned char>(file),
+               std::istream_iterator<unsigned char>());
+    return true;
+}
+
 int chip8::loop()
 {
     if (initRender() == false) {
-        std::cout << "Render init failed" << std::endl;
+        cout << "Render init failed" << endl;
         return -1;
     }
 
@@ -333,6 +380,7 @@ int chip8::loop()
         {
             draw();
         }
+        handleCounters();
         while(SDL_PollEvent(&Event)) {
             handleEvent(&Event);
         }

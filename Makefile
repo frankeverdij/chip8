@@ -4,7 +4,7 @@
 CXX = g++
 
 # g++ compiler flags
-CXXFLAGS = -O2
+CXXFLAGS = -g
 
 # linker
 LD = $(CXX)

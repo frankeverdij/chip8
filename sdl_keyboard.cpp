@@ -11,14 +11,14 @@ void chip8::handleEvent(SDL_Event * Event)
             break;
         case SDL_KEYDOWN :
             keypress = key_pressed(&(Event->key));
-            if (keypress < 16)
+            if (keypress != 255)
             {
                 keys_[keypress] = true;
             }
             break;
         case SDL_KEYUP :
             keypress = key_pressed(&(Event->key));
-            if (keypress < 16)
+            if (keypress != 255)
             {
                 keys_[keypress] = false;
             }
@@ -40,7 +40,7 @@ unsigned char chip8::waitForKeyPress()
         if (Event.type == SDL_KEYDOWN)
         {
             key = key_pressed(&(Event.key));
-            if (key < 16)
+            if (key != 255)
             {
                 return key;
             }
@@ -85,7 +85,7 @@ unsigned char chip8::key_pressed(SDL_KeyboardEvent * ke)
         case SDL_SCANCODE_V :
             return 15;
         default :
-            return 16;
+            return 255;
     }
    
 }
