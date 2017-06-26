@@ -1,4 +1,7 @@
 #include "chip8.h"
+#include <thread>
+#include <chrono>
+#include <ctime>
 
 unsigned char chip8::fontset[80] =
 {
@@ -154,9 +157,9 @@ void chip8::handle_d(const unsigned short& opcode)
         {
             if (memory_[i_ + j] & mask)
             {
-                pixel = gfx_[64 * y + x];
+                pixel = gfx_[64 * y + x + k];
                 v_[15] |= pixel;
-                gfx_[64 * y + x] = !pixel;
+                gfx_[64 * y + x + k] = pixel ^ 0xff;
             }
             mask >> 1;
         }
@@ -371,7 +374,7 @@ int chip8::loop()
     }
 
     SDL_Event Event;
-    
+
     while (running_)
     {
         unsigned short opcode = fetch();
@@ -384,6 +387,7 @@ int chip8::loop()
         while(SDL_PollEvent(&Event)) {
             handleEvent(&Event);
         }
+        std::this_thread::sleep_for (std::chrono::milliseconds(16));
     }
 
     cleanupRender();
