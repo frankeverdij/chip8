@@ -46,15 +46,15 @@ void chip8::draw()
     glEnable(GL_TEXTURE_2D);
 
     glBegin(GL_QUADS);
-    glTexCoord2i(0, 0); glVertex2i(0, 0);
-    glTexCoord2i(0, 1); glVertex2i(0, height_);
-    glTexCoord2i(1, 1); glVertex2i(width_, height_);
-    glTexCoord2i(1, 0); glVertex2i(width_, 0);
+    glTexCoord2i(0, 1); glVertex2i(0, 0);
+    glTexCoord2i(0, 0); glVertex2i(0, height_);
+    glTexCoord2i(1, 0); glVertex2i(width_, height_);
+    glTexCoord2i(1, 1); glVertex2i(width_, 0);
     glEnd();
     glDisable(GL_TEXTURE_2D);
 
     glBindTexture(GL_TEXTURE_2D, 0);
-
+    glFlush();
     SDL_GL_SwapWindow(window_);
     draw_ = false;
 }

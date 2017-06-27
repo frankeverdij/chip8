@@ -32,11 +32,16 @@ chip8::chip8() : window_(NULL),
                  pc_(0x200),
                  i_(0)
 {
-    for (int i = 0; i < 80; ++i)
-        memory_[i] = fontset[i];
+    clearDisplay();
 
-    for (int i = 0; i < 16; ++i)
-        keys_[i] = false;
+    for (int j = 0; j < 80; ++j)
+        memory_[j] = fontset[j];
+
+    for (int j = 0; j < 16; ++j)
+    {
+        v_[j] = 0;
+        keys_[j] = false;
+    }
 }
 
 unsigned short chip8::fetch()
@@ -44,7 +49,7 @@ unsigned short chip8::fetch()
     unsigned short opcode = memory_[pc_] << 8 | memory_[pc_+1];
 
     cout << "memory " << showbase << internal << hex << setw(2) << (int) memory_[pc_] << " : " << (int) memory_[pc_ + 1] << endl;
-    cout << "opcode " << opcode << " pc " << pc_ << endl;
+    cout << "opcode " << opcode << " pc " << (int)pc_ << endl;
     pc_ += 2;
     return opcode;
 }
@@ -63,8 +68,16 @@ void chip8::handle_0(const unsigned short& opcode)
             clearDisplay();
             break;
         case 0x00EE :
-            pc_ = stack_.top();
-            stack_.pop();
+            if (!stack_.empty())
+            {
+                pc_ = stack_.top();
+                stack_.pop();
+            }
+            else
+            {
+                cerr << "Stack is empty!" << endl;
+                exit(-1);
+            } 
             break;
         default : // RCA 1802 call, but that's illegal
             print_illegal(0x0, opcode);
@@ -113,7 +126,7 @@ void chip8::handle_8(const unsigned short& opcode)
             break;
         case 0x06 :
             v_[15] = (x & 0x01);
-            v_[get_opcode_X(opcode)] >> 1;
+            v_[get_opcode_X(opcode)] >>= 1;
             break;
         case 0x07 :
             add = y + 1;
@@ -123,7 +136,7 @@ void chip8::handle_8(const unsigned short& opcode)
             break;
         case 0x0E :
             v_[15] = (x & 0x80) >> 7;
-            v_[get_opcode_X(opcode)] << 1;            
+            v_[get_opcode_X(opcode)] <<= 1;            
             break;
         default : // illegal 8XY. call
             print_illegal(0x08, opcode);
@@ -137,8 +150,9 @@ void chip8::handle_d(const unsigned short& opcode)
     unsigned char x = v_[get_opcode_X(opcode)];
     unsigned char y = v_[get_opcode_Y(opcode)];
     unsigned char n = opcode & 0x0f;
-    unsigned char bits, lines, mask, pixel;
+    unsigned char bits, lines, pixel;
     unsigned char j, k;
+    unsigned char mask = 0x80;
 
     v_[15] = 0;
 
@@ -152,16 +166,14 @@ void chip8::handle_d(const unsigned short& opcode)
 
     for (j = 0; j < lines; j++)
     {
-        mask = 0x80;
         for (k = 0; k < bits; k++)
         {
-            if (memory_[i_ + j] & mask)
+            if (memory_[i_ + j] & (mask >> k))
             {
-                pixel = gfx_[64 * y + x + k];
+                pixel = gfx_[64 * (y + j) + x + k];
                 v_[15] |= pixel;
-                gfx_[64 * y + x + k] = pixel ^ 0xff;
+                gfx_[64 * (y + j) + x + k] = pixel ^ 0xff;
             }
-            mask >> 1;
         }
     }
     v_[15] &= 0x01;
