@@ -50,7 +50,7 @@ unsigned char chip8::waitForKeyPress()
 
 unsigned char chip8::key_pressed(SDL_KeyboardEvent * ke)
 {
-    switch ((ke->keysym).sym)
+    switch ((ke->keysym).scancode)
     {
         case SDL_SCANCODE_1 :
             return 0;

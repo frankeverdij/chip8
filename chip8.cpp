@@ -399,7 +399,7 @@ int chip8::loop()
         while(SDL_PollEvent(&Event)) {
             handleEvent(&Event);
         }
-        std::this_thread::sleep_for (std::chrono::milliseconds(16));
+        SDL_Delay(2);
     }
 
     cleanupRender();
