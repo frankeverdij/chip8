@@ -1,7 +1,4 @@
 #include "chip8.h"
-#include <thread>
-#include <chrono>
-#include <ctime>
 
 unsigned char chip8::fontset[80] =
 {
