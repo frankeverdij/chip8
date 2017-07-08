@@ -48,44 +48,37 @@ unsigned char chip8::waitForKeyPress()
     }
 }
 
-unsigned char chip8::key_pressed(SDL_KeyboardEvent * ke)
+map<SDL_Scancode, unsigned char> chip8::keymap = {
+    {SDL_SCANCODE_1, 0x01},
+    {SDL_SCANCODE_2, 0x02},
+    {SDL_SCANCODE_3, 0x03},
+    {SDL_SCANCODE_4, 0x0c},
+    {SDL_SCANCODE_Q, 0x04},
+    {SDL_SCANCODE_W, 0x05},
+    {SDL_SCANCODE_E, 0x06},
+    {SDL_SCANCODE_R, 0x0d},
+    {SDL_SCANCODE_A, 0x07},
+    {SDL_SCANCODE_S, 0x08},
+    {SDL_SCANCODE_D, 0x09},
+    {SDL_SCANCODE_F, 0x0e},
+    {SDL_SCANCODE_Z, 0x0a},
+    {SDL_SCANCODE_X, 0x00},
+    {SDL_SCANCODE_C, 0x0b},
+    {SDL_SCANCODE_V, 0x0f}
+};
+
+unsigned char chip8::key_pressed(SDL_KeyboardEvent * kbe)
 {
-    switch ((ke->keysym).scancode)
+    unsigned char key;
+
+    try
     {
-        case SDL_SCANCODE_1 :
-            return 0;
-        case SDL_SCANCODE_2 :
-            return 1;
-        case SDL_SCANCODE_3 :
-            return 2;
-        case SDL_SCANCODE_4 :
-            return 3;
-        case SDL_SCANCODE_Q :
-            return 4;
-        case SDL_SCANCODE_W :
-            return 5;
-        case SDL_SCANCODE_E :
-            return 6;
-        case SDL_SCANCODE_R :
-            return 7;
-        case SDL_SCANCODE_A :
-            return 8;
-        case SDL_SCANCODE_S :
-            return 9;
-        case SDL_SCANCODE_D :
-            return 10;
-        case SDL_SCANCODE_F :
-            return 11;
-        case SDL_SCANCODE_Z :
-            return 12;
-        case SDL_SCANCODE_X :
-            return 13;
-        case SDL_SCANCODE_C :
-            return 14;
-        case SDL_SCANCODE_V :
-            return 15;
-        default :
-            return 255;
+        key = keymap.at((kbe->keysym).scancode);
     }
-   
+    catch (const std::out_of_range& oor)
+    {
+        key = 255;
+    }
+
+    return key;
 }

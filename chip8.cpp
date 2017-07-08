@@ -48,8 +48,8 @@ unsigned short chip8::fetch()
 {
     unsigned short opcode = memory_[pc_] << 8 | memory_[pc_+1];
 
-    cout << "memory " << showbase << internal << hex << setw(2) << (int) memory_[pc_] << " : " << (int) memory_[pc_ + 1] << endl;
-    cout << "opcode " << opcode << " pc " << (int)pc_ << endl;
+//    cout << "memory " << showbase << internal << hex << setw(2) << (int) memory_[pc_] << " : " << (int) memory_[pc_ + 1] << endl;
+//    cout << "opcode " << opcode << " pc " << (int)pc_ << endl;
     pc_ += 2;
     return opcode;
 }
@@ -60,7 +60,7 @@ void chip8::clearDisplay()
     draw_ = true;
 }
 
-void chip8::handle_0(const unsigned short& opcode)
+inline void chip8::handle_0(const unsigned short& opcode)
 {
     switch (opcode)
     {
@@ -91,7 +91,7 @@ void chip8::print_illegal(unsigned char handle, const unsigned short& opcode)
     cout << "Illegal " << showbase << internal << setfill('0') << hex << setw(2) << (int) handle << " opcode " << setw(4) << opcode << " , quitting..." << endl;
 }
 
-void chip8::handle_8(const unsigned short& opcode)
+inline void chip8::handle_8(const unsigned short& opcode)
 {
     unsigned char lsb = opcode & 0x0f;
     unsigned char x = v_[get_opcode_X(opcode)];
@@ -119,23 +119,19 @@ void chip8::handle_8(const unsigned short& opcode)
             v_[15] = (add > 255) ? 1 : 0;
             break;
         case 0x05 :
-            add = x + 1;
-            add += (!y);
-            v_[get_opcode_X(opcode)] = add & 0xff;
             v_[15] = (x < y) ? 0 : 1;
+            v_[get_opcode_X(opcode)] -= y;
             break;
         case 0x06 :
             v_[15] = (x & 0x01);
             v_[get_opcode_X(opcode)] >>= 1;
             break;
         case 0x07 :
-            add = y + 1;
-            add += (!x);
-            v_[get_opcode_X(opcode)] = add & 0xff;
             v_[15] = (y < x) ? 0 : 1;
+            v_[get_opcode_X(opcode)] = y - x;
             break;
         case 0x0E :
-            v_[15] = (x & 0x80) >> 7;
+            v_[15] = x >> 7;
             v_[get_opcode_X(opcode)] <<= 1;            
             break;
         default : // illegal 8XY. call
@@ -145,7 +141,7 @@ void chip8::handle_8(const unsigned short& opcode)
     }
 }
 
-void chip8::handle_d(const unsigned short& opcode)
+inline void chip8::handle_d(const unsigned short& opcode)
 {
     unsigned char x = v_[get_opcode_X(opcode)];
     unsigned char y = v_[get_opcode_Y(opcode)];
@@ -180,7 +176,7 @@ void chip8::handle_d(const unsigned short& opcode)
     draw_ = true;
 }
 
-void chip8::handle_e(const unsigned short& opcode)
+inline void chip8::handle_e(const unsigned short& opcode)
 {
     unsigned char lsb = opcode & 0xff;
 
@@ -199,7 +195,7 @@ void chip8::handle_e(const unsigned short& opcode)
     }
 }
 
-void chip8::handle_f(const unsigned short& opcode)
+inline void chip8::handle_f(const unsigned short& opcode)
 {
     unsigned char lsb = opcode & 0xff;
     unsigned char bcd, j;
@@ -239,13 +235,13 @@ void chip8::handle_f(const unsigned short& opcode)
             memory_[i_ + 2] = (bcd % 10);
             break;
         case 0x55 :
-            for (j = 0; j < get_opcode_X(opcode) ; j++)
+            for (j = 0; j <= get_opcode_X(opcode) ; j++)
             {
                 memory_[i_ + j] = v_[j];
             }
             break;
         case 0x65 :
-            for (j = 0; j < get_opcode_X(opcode) ; j++)
+            for (j = 0; j <= get_opcode_X(opcode) ; j++)
             {
                 v_[j] = memory_[i_ + j];
             }
@@ -257,22 +253,22 @@ void chip8::handle_f(const unsigned short& opcode)
     }
 }
 
-unsigned short chip8::get_opcode_address(const unsigned short& opcode)
+inline unsigned short chip8::get_opcode_address(const unsigned short& opcode)
 {
     return opcode & 0x0fff;
 }
 
-unsigned char chip8::get_opcode_X(const unsigned short& opcode)
+inline unsigned char chip8::get_opcode_X(const unsigned short& opcode)
 {
     return (opcode >> 8) & 0x0f;
 }
 
-unsigned char chip8::get_opcode_Y(const unsigned short& opcode)
+inline unsigned char chip8::get_opcode_Y(const unsigned short& opcode)
 {
     return (opcode >> 4) & 0x0f;
 }
 
-unsigned char chip8::get_opcode_val(const unsigned short& opcode)
+inline unsigned char chip8::get_opcode_val(const unsigned short& opcode)
 {
     return opcode & 0xff;
 }
@@ -360,6 +356,12 @@ bool chip8::loadRom(const char *filename)
     streampos fileSize;
 
     ifstream file(filename, ios::binary);
+    if (file.fail())
+    {
+        cout << "Open file failed" << endl;
+        return false;
+    }
+
     file.unsetf(ios::skipws);
 
     file.seekg(0, ios::end);

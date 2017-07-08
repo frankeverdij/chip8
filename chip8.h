@@ -3,6 +3,7 @@
 
 #include <stack>
 #include <vector>
+#include <map>
 #include <cstdlib>
 #include <iostream>
 #include <fstream>
@@ -35,16 +36,19 @@ class chip8
         vector<unsigned char> memory_;
         unsigned char gfx_[64 * 32];
         unsigned char keys_[16];
+        static map<SDL_Scancode, unsigned char> keymap;
+        static unsigned char fontset[80];
 
         inline unsigned short get_opcode_address(const unsigned short&);
         inline unsigned char get_opcode_X(const unsigned short&);
         inline unsigned char get_opcode_Y(const unsigned short&);
         inline unsigned char get_opcode_val(const unsigned short&);
+        inline void handle_0(const unsigned short&);
+        inline void handle_8(const unsigned short&);
+        inline void handle_d(const unsigned short&);
+        inline void handle_e(const unsigned short&);
+        inline void handle_f(const unsigned short&);
 
-    public :
-        static unsigned char fontset[80];
-        chip8();
-        bool loadRom(const char *);
         bool initRender();
         void draw();
         void clearDisplay();
@@ -55,12 +59,11 @@ class chip8
         unsigned short fetch();
         unsigned char waitForKeyPress();
         void decode_and_execute(const unsigned short&);
-        inline void handle_0(const unsigned short&);
-        inline void handle_8(const unsigned short&);
-        inline void handle_d(const unsigned short&);
-        inline void handle_e(const unsigned short&);
-        inline void handle_f(const unsigned short&);
         void print_illegal(unsigned char, const unsigned short&);
+
+    public :
+        chip8();
+        bool loadRom(const char *);
         int loop();
 };
 
