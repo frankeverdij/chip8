@@ -1,8 +1,8 @@
-#include "chip8.h"
+#include "sdl2/backend.h"
 
 int main(int argc, char* argv[])
 {
-    chip8 myChip8;
+    sdl2_back myChip8;
 
     if (argc > 1)
     {

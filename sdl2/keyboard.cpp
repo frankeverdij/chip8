@@ -1,26 +1,26 @@
-#include "chip8.h"
+#include "sdl2/backend.h"
 
-void chip8::handleEvent(SDL_Event * Event)
+void sdl2_back::handleEvent()
 {
     unsigned char keypress;
 
-    switch (Event->type)
+    switch (Event.type)
     {
         case SDL_QUIT :
-            running_ = false;
+            setRunning(false);
             break;
         case SDL_KEYDOWN :
-            keypress = key_pressed(&(Event->key));
+            keypress = key_pressed(&(Event.key));
             if (keypress != 255)
             {
-                keys_[keypress] = true;
+                setKey(keypress, true);
             }
             break;
         case SDL_KEYUP :
-            keypress = key_pressed(&(Event->key));
+            keypress = key_pressed(&(Event.key));
             if (keypress != 255)
             {
-                keys_[keypress] = false;
+                setKey(keypress, false);
             }
             break;
         default :
@@ -28,10 +28,10 @@ void chip8::handleEvent(SDL_Event * Event)
     }
 }
 
-unsigned char chip8::waitForKeyPress()
+unsigned char sdl2_back::waitForKeyPress()
 {
     SDL_Event Event;
-    unsigned char key;
+    unsigned char keypress;
 
     while (true)
     {
@@ -39,16 +39,16 @@ unsigned char chip8::waitForKeyPress()
 
         if (Event.type == SDL_KEYDOWN)
         {
-            key = key_pressed(&(Event.key));
-            if (key != 255)
+            keypress = key_pressed(&(Event.key));
+            if (keypress != 255)
             {
-                return key;
+                return keypress;
             }
         }
     }
 }
 
-map<SDL_Scancode, unsigned char> chip8::keymap = {
+map<SDL_Scancode, unsigned char> sdl2_back::keymap = {
     {SDL_SCANCODE_1, 0x01},
     {SDL_SCANCODE_2, 0x02},
     {SDL_SCANCODE_3, 0x03},
@@ -67,7 +67,7 @@ map<SDL_Scancode, unsigned char> chip8::keymap = {
     {SDL_SCANCODE_V, 0x0f}
 };
 
-unsigned char chip8::key_pressed(SDL_KeyboardEvent * kbe)
+unsigned char sdl2_back::key_pressed(SDL_KeyboardEvent * kbe)
 {
     unsigned char key;
 

@@ -1,6 +1,6 @@
-#include "chip8.h"
+#include "sdl2/backend.h"
 
-bool chip8::initRender()
+bool sdl2_back::initRender()
 {
     if(SDL_Init(SDL_INIT_EVERYTHING) < 0) {
         std::cout << "Can't init" << std::endl;
@@ -34,7 +34,7 @@ bool chip8::initRender()
     
 }
 
-void chip8::draw()
+void sdl2_back::draw(unsigned char * fb)
 {
     glClear(GL_COLOR_BUFFER_BIT);
     glGenTextures(1, &texhandle_);
@@ -42,7 +42,7 @@ void chip8::draw()
     glBindTexture(GL_TEXTURE_2D, texhandle_);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE, 64, 32, 0, GL_LUMINANCE, GL_UNSIGNED_BYTE, gfx_);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_LUMINANCE, 64, 32, 0, GL_LUMINANCE, GL_UNSIGNED_BYTE, fb);
     glEnable(GL_TEXTURE_2D);
 
     glBegin(GL_QUADS);
@@ -56,10 +56,11 @@ void chip8::draw()
     glBindTexture(GL_TEXTURE_2D, 0);
     glFlush();
     SDL_GL_SwapWindow(window_);
-    draw_ = false;
+
+    setDraw(false);
 }
 
-void chip8::cleanupRender()
+void sdl2_back::cleanupRender()
 {
     SDL_DestroyWindow(window_);
     SDL_Quit();

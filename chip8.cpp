@@ -20,11 +20,7 @@ unsigned char chip8::fontset[80] =
     0xF0, 0x80, 0xF0, 0x80, 0x80  // F
 };
 
-chip8::chip8() : window_(NULL),
-                 renderer_(NULL),
-                 width_(640),
-                 height_(320),
-                 running_(true),
+chip8::chip8() : running_(true),
                  memory_(4096),
                  pc_(0x200),
                  i_(0)
@@ -55,6 +51,21 @@ void chip8::clearDisplay()
 {
     std::fill_n(gfx_, 64 * 32, 0);
     draw_ = true;
+}
+
+void chip8::setRunning(bool runbit)
+{
+    running_ = runbit;
+}
+
+void chip8::setDraw(bool drawbit)
+{
+    draw_ = drawbit;
+}
+
+void chip8::setKey(unsigned char keypress, bool state)
+{
+    keys_[keypress] = state;
 }
 
 inline void chip8::handle_0(const unsigned short& opcode)
@@ -384,21 +395,19 @@ int chip8::loop()
         return -1;
     }
 
-    SDL_Event Event;
-
     while (running_)
     {
         unsigned short opcode = fetch();
         decode_and_execute(opcode);
         if (draw_)
         {
-            draw();
+            draw(gfx_);
         }
         handleCounters();
-        while(SDL_PollEvent(&Event)) {
-            handleEvent(&Event);
+        while(pollEvent()) {
+            handleEvent();
         }
-        SDL_Delay(2);
+        delay(2);
     }
 
     cleanupRender();

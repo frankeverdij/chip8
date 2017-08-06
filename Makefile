@@ -4,7 +4,7 @@
 CXX = g++
 
 # g++ compiler flags
-CXXFLAGS = -g -std=c++11
+CXXFLAGS = -O2 -std=c++11 -I.
 
 # linker
 LD = $(CXX)
@@ -15,8 +15,13 @@ LDFLAGS = -lSDL2 -lGL
 # name of executable
 EXE = chip8
 
-# list of all objects
+# list of all sources
 SOURCES = $(wildcard *.cpp)
+
+# add SDL2 backend
+SOURCES += $(wildcard sdl2/*.cpp)
+
+# list of all sources
 OBJECTS = $(SOURCES:.cpp=.o)
 
 # Makefile
